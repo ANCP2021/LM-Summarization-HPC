@@ -1,7 +1,8 @@
 import torch
 from transformers import (
     AutoTokenizer, 
-    AutoModelForCausalLM
+    AutoModelForCausalLM,
+    BitsAndBytesConfig
 )
 from datasets import load_dataset
 from rouge_score import rouge_scorer
@@ -15,10 +16,18 @@ def check_device():
     return "cpu"
 
 # summarize the input text using the defined model and tokenizer
-def summarize(model, tokenizer, text, device):
-    inputs = tokenizer.encode(text, return_tensors="pt", truncation=True).to(device)
-    summary_ids = model.generate(inputs, max_length=1024, num_beams=5, early_stopping=True)
-    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+def summarize(model, tokenizer, text, device, model_name):
+    summary = ""
+    if model_name == "openai-community/gpt2":
+        if DEBUG: print("ChatGPT")
+        inputs = tokenizer.encode(text, return_tensors="pt", truncation=True).to(device)
+        summary_ids = model.generate(inputs, max_length=1024, num_beams=5, early_stopping=True)
+        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+    elif model_name == "SalmanFaroz/Llama-2-7b-samsum":
+        if DEBUG: print("llama")
+        prompt = "Summarize the following file. " + text
+        inputs = tokenizer(prompt, return_tensors='pt', max_length=1024, truncation=True).to(device)
+        summary = tokenizer.decode(model.generate(inputs["input_ids"],max_new_tokens=100,)[0],skip_special_tokens=True)
 
     return summary
 
@@ -41,7 +50,8 @@ if __name__ == "__main__":
     print(f"Using device: {device}")
 
     # load model and the respective tokenizer
-    model_name = "openai-community/gpt2"
+    model_name = "SalmanFaroz/Llama-2-7b-samsum"
+    #model_name = "openai-community/gpt2"
     model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     
@@ -67,10 +77,12 @@ if __name__ == "__main__":
             else:                           # the XSum dataset has context as 'document' and summary as 'summary'
                 text = example['document']
                 reference = example['summary']
-
+            if DEBUG: print(f"About to tokenize text")
             tokenized_text = tokenizer.encode(text)
             if len(tokenized_text) < 1024: # check error since some tokenized inputs are greater than what gpt2 can handle
-                summary = summarize(model, tokenizer, text, device)
+                if DEBUG: print(f"Tokenized text is less than 1024, about to summarize")
+                summary = summarize(model, tokenizer, text, device, model_name)
+                if DEBUG: print(f"Summarized")
                 summaries.append(summary)
                 references.append(reference)
             
