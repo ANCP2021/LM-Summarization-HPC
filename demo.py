@@ -2,7 +2,9 @@ import torch
 from transformers import (
     AutoTokenizer, 
     AutoModelForCausalLM,
-    BitsAndBytesConfig
+    BitsAndBytesConfig,
+    T5Tokenizer,
+    T5ForConditionalGeneration
 )
 from datasets import load_dataset
 from rouge_score import rouge_scorer
@@ -28,6 +30,12 @@ def summarize(model, tokenizer, text, device, model_name):
         prompt = "Summarize the following file. " + text
         inputs = tokenizer(prompt, return_tensors='pt', max_length=1024, truncation=True).to(device)
         summary = tokenizer.decode(model.generate(inputs["input_ids"],max_new_tokens=100,)[0],skip_special_tokens=True)
+    elif model_name == "google/t5-v1_1-base":
+        if DEBUG: print("T5")
+        prompt = "summarize: " + text
+        inputs = tokenizer(prompt, return_tensors="pt", truncation=True).to(device)
+        summary_ids = model.generate(inputs["input_ids"], max_length=150, num_beams=5, early_stopping=True)
+        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
 
     return summary
 
@@ -52,6 +60,7 @@ if __name__ == "__main__":
     # load model and the respective tokenizer
     model_name = "SalmanFaroz/Llama-2-7b-samsum"
     #model_name = "openai-community/gpt2"
+    #model_name = "google-t5/t5-base"
     model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     
@@ -109,3 +118,4 @@ if __name__ == "__main__":
         print(f"Average ROUGE-2: {avg_rouge2:.4f}")
         print(f"Average ROUGE-L: {avg_rougeL:.4f}")
         print(f"Example summary: {summaries[0]}")
+        
