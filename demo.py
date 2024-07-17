@@ -60,7 +60,7 @@ if __name__ == "__main__":
     # load model and the respective tokenizer
     model_name = "SalmanFaroz/Llama-2-7b-samsum"
     #model_name = "openai-community/gpt2"
-    #model_name = "google-t5/t5-base"
+    #model_name = "google/t5-v1_1-base"
     model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     
