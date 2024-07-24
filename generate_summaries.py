@@ -1,6 +1,5 @@
 from datasets import load_dataset
-from models.gpt import GPT2
-from models.t5 import T5
+from model import Model
 
 def load_data(dataset_name, split='train'):
     dataset = load_dataset(dataset_name, split=split)
@@ -17,7 +16,7 @@ def generate_summaries(model, dataset):
 if __name__ == '__main__':
     xsum_dataset = load_dataset("EdinburghNLP/xsum", split='test[:5]')
 
-    gpt_model = GPT2()
+    model = Model()
 
-    gpt_summaries = generate_summaries(gpt_model, xsum_dataset)
-
+    summaries = generate_summaries(model, xsum_dataset)
+    print(summaries)
