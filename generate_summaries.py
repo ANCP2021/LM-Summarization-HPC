@@ -18,13 +18,15 @@ def generate_summaries(model, dataset, dataset_name):
     for data in dataset:
         if dataset_name == "EdinburghNLP/xsum":
             text = data['document']
+            reference = data['summary']
         elif dataset_name == "abisee/cnn_dailymail": 
             text = data['article']
+            reference = data['highlights']
         else:
             raise ValueError(f"Incorrect dataset: {dataset_name}")
         
         summary = model.summarize(text)
-        summary_dicts.append({'generated': summary, 'reference': text})
+        summary_dicts.append({'generated': summary, 'reference': reference, 'context': text})
     return summary_dicts
 
 if __name__ == '__main__':
