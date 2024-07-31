@@ -1,22 +1,60 @@
+import torch
 from datasets import load_dataset
 from model import Model
+import json
 
 def load_data(dataset_name, split='train'):
-    dataset = load_dataset(dataset_name, split=split)
+    if dataset_name == "EdinburghNLP/xsum":
+        dataset = load_dataset(dataset_name, split=split)
+    elif dataset_name == "abisee/cnn_dailymail":
+        dataset = load_dataset("abisee/cnn_dailymail", "3.0.0", split=split)
+    else:
+        raise ValueError(f"Incorrect dataset: {dataset_name}")
+    
     return dataset
 
-def generate_summaries(model, dataset):
-    summaries = []
+def generate_summaries(model, dataset, dataset_name):
+    summary_dicts = []
     for data in dataset:
-        text = data['document'] 
+        if dataset_name == "EdinburghNLP/xsum":
+            text = data['document']
+        elif dataset_name == "abisee/cnn_dailymail": 
+            text = data['article']
+        else:
+            raise ValueError(f"Incorrect dataset: {dataset_name}")
+        
         summary = model.summarize(text)
-        summaries.append(summary)
-    return summaries
+        summary_dicts.append({'generated': summary, 'reference': text})
+    return summary_dicts
 
 if __name__ == '__main__':
-    xsum_dataset = load_dataset("EdinburghNLP/xsum", split='test[:5]')
+    args = {
+        # 'model_name': 'openai-community/gpt2',
+        # 'model_name': 'openai-community/gpt2-medium',
+        # 'model_name': 'openai-community/gpt2-large',
+        # 'model_name': 'openai-community/gpt2-xl',
+        # 'model_name': 'google/flan-t5-small',
+        # 'model_name': 'google/flan-t5-base',
+        # 'model_name': 'google/flan-t5-large',
+        'model_name': 'google/flan-t5-xl',
+        'dataset_name': 'abisee/cnn_dailymail',
+        # 'dataset_name': 'EdinburghNLP/xsum',
+        'split': 'test[:1]',
+    }
+    if args['model_name'][:6] == 'google':
+        model_family = 't5'
+    elif args['model_name'][:6] == 'openai':
+        model_family = 'gpt'
+    else:
+        raise ValueError('Modle family must be of type \'t5\' or \'gpt\'.')
 
-    model = Model()
+    dataset = load_data(dataset_name=args['dataset_name'], split=args['split'])
 
-    summaries = generate_summaries(model, xsum_dataset)
-    print(summaries)
+    model = Model(model_name=args['model_name'], model_family=model_family)
+
+    summaries = generate_summaries(model, dataset, dataset_name="abisee/cnn_dailymail")
+
+    file_name = args['model_name']+'_'+args['dataset_name']+'_'+'summaries.json'
+    file_name = file_name.replace('/', '_')
+    with open(file_name, 'w') as json_file:
+        json.dump(summaries, json_file)
