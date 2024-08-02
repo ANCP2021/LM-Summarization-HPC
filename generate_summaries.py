@@ -25,7 +25,9 @@ def generate_summaries(model, dataset, dataset_name):
             raise ValueError(f"Incorrect dataset: {dataset_name}")
         
         summary = model.summarize(text)
+        # print('summarized')
         summary_dicts.append({'generated': summary, 'reference': reference, 'context': text})
+
     return summary_dicts
 
 def write_to_folder(dir, file_name, summaries):

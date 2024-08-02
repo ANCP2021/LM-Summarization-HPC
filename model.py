@@ -1,7 +1,5 @@
-import torch
 from transformers import (
     AutoTokenizer, 
-    AutoModelForCausalLM,
     AutoModelForSeq2SeqLM,
     GPT2Tokenizer,
     GPT2LMHeadModel
