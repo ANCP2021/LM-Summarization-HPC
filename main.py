@@ -7,20 +7,20 @@ from model import Model
 import time
 import torch
 
-DEBUG = 1
+DEBUG = 0
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if DEBUG: print(f'Using device: {device}')
+
     models = [
-        # 'openai-community/gpt2',
-        # 'openai-community/gpt2-medium',
-        # 'openai-community/gpt2-large',
-        'openai-community/gpt2-xl',
-        # 'google/flan-t5-small',
-        # 'google/flan-t5-base',
-        # 'google/flan-t5-large',
-        # 'google/flan-t5-xl',
+        'openai-community/gpt2',
+        'openai-community/gpt2-medium',
+        'openai-community/gpt2-large',
+        'google/flan-t5-small',
+        'google/flan-t5-base',
+        'google/flan-t5-large',
+        'google/flan-t5-xl',
     ]
     datasets = [
         'abisee/cnn_dailymail',
@@ -45,12 +45,12 @@ if __name__ == '__main__':
 
             model_file_name = model
             model = Model(model_name=model, model_family=model_family)
-            if DEBUG: print(f'model loaded {model_file_name} for dataset {dataset}')
+            if DEBUG: print(f'Model loaded {model_file_name} for dataset {dataset}')
 
             start_time = time.time()
             summaries = generate_summaries(model, dataset_loaded, dataset_name=dataset)
             end_time = time.time()
-            if DEBUG: print(f'All summaries are generated for model {model_file_name}')
+            if DEBUG: print(f'All summaries generated for model {model_file_name}')
 
             execution_time = end_time - start_time
             duration_key = model_file_name+'_'+dataset
